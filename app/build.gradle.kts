@@ -50,6 +50,9 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.cardview:cardview:1.0.0")
 
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.google.android.material:material:1.11.0")
+
 //    // Room database
 //    implementation("androidx.room:room-runtime:2.6.1")
 //    implementation("androidx.room:room-ktx:2.6.1")

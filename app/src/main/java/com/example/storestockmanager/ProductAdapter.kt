@@ -34,6 +34,12 @@ class ProductAdapter(
         holder.quantity.text = "${product.quantity} шт"
         holder.shelfLocation.text = "Полка: ${product.shelfLocation}"
         holder.price.text = "${product.price} руб"
+
+        if (product.quantity < product.minStockLevel) {
+            holder.quantity.setTextColor(holder.itemView.context.getColor(R.color.low_stock))
+        } else {
+            holder.quantity.setTextColor(holder.itemView.context.getColor(R.color.normal_stock))
+        }
     }
 
     override fun getItemCount(): Int = products.size
@@ -42,4 +48,6 @@ class ProductAdapter(
         products = newProducts
         notifyDataSetChanged()
     }
+
+    fun getCurrentList(): List<Product> = products
 }

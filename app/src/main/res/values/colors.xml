@@ -1,5 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+
+    <color name="primary_blue">#1565c0</color>
+    <color name="primary_blue_light">#1976d2</color>
+    <color name="primary_blue_lighter">#1e88e5</color>
+    <color name="accent_blue">#2196F3</color>
+
+    <color name="background_light">#f8fafc</color>
+    <color name="background_white">#ffffff</color>
+    <color name="background_gray">#f1f5f9</color>
+
+    <color name="text_dark">#101112</color>
+    <color name="text_gray">#64748b</color>
+    <color name="text_light">#94a3b8</color>
+
+    <color name="border_gray">#cbd5e1</color>
+    <color name="border_dotted">#6b848d</color>
+
+    <color name="low_stock">#dc2626</color>
+    <color name="normal_stock">#16a34a</color>
+    <color name="warning">#f59e0b</color>
+
+    <color name="button_primary_start">#1565c0</color>
+    <color name="button_primary_end">#1976d2</color>
+    <color name="button_secondary">#ffffff</color>
 </resources>
