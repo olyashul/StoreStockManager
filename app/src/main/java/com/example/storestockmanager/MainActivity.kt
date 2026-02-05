@@ -2,19 +2,24 @@ package com.example.storestockmanager
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.storestockmanager.data.Product
-import com.example.storestockmanager.ui.AddProductActivity
+import com.example.storestockmanager.data.ProductDatabase
+import com.example.storestockmanager.data.ProductRepository
 import com.example.storestockmanager.ui.ProductAdapter
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ProductAdapter
     private lateinit var fabAdd: FloatingActionButton
+    private lateinit var repository: ProductRepository
 
     companion object {
         private const val REQUEST_ADD_PRODUCT = 1001
@@ -24,67 +29,50 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Инициализация базы данных
+        val productDao = ProductDatabase.getDatabase(this).productDao()
+        repository = ProductRepository(productDao)
+
         setupRecyclerView()
         setupFloatingButton()
-        loadTestData()
+        loadProductsFromDatabase()
     }
 
     private fun setupRecyclerView() {
         recyclerView = findViewById(R.id.recyclerViewProducts)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = ProductAdapter()
+
+        adapter = ProductAdapter(onItemLongClick = { product ->
+            android.app.AlertDialog.Builder(this)
+                .setTitle("Удалить товар")
+                .setMessage("Удалить \"${product.name}\"?")
+                .setPositiveButton("Удалить") { _, _ ->
+                    lifecycleScope.launch {
+                        repository.delete(product)
+                        Toast.makeText(this@MainActivity, "Товар удален", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                .setNegativeButton("Отмена", null)
+                .show()
+        })
+
         recyclerView.adapter = adapter
     }
 
     private fun setupFloatingButton() {
         fabAdd = findViewById(R.id.fabAdd)
         fabAdd.setOnClickListener {
-            val intent = Intent(this, AddProductActivity::class.java)
+            val intent = Intent(this, com.example.storestockmanager.ui.AddProductActivity::class.java)
             startActivityForResult(intent, REQUEST_ADD_PRODUCT)
         }
     }
 
-    private fun loadTestData() {
-        val testProducts = listOf(
-            Product(
-                name = "Молоко Простоквашино",
-                category = "Молочные продукты",
-                quantity = 15,
-                price = 89.0,
-                shelfLocation = "Холодильник А-3"
-            ),
-            Product(
-                name = "Хлеб Бородинский",
-                category = "Хлебобулочные изделия",
-                quantity = 8,
-                price = 45.0,
-                shelfLocation = "Стол Б-2"
-            ),
-            Product(
-                name = "Яйца куриные",
-                category = "Яйца",
-                quantity = 5,
-                price = 120.0,
-                shelfLocation = "Холодильник А-1",
-                minStockLevel = 10
-            ),
-            Product(
-                name = "Сахар",
-                category = "Бакалея",
-                quantity = 12,
-                price = 65.0,
-                shelfLocation = "Стол В-4"
-            ),
-            Product(
-                name = "Кофе Jacobs",
-                category = "Напитки",
-                quantity = 3,
-                price = 350.0,
-                shelfLocation = "Стол А-5",
-                minStockLevel = 5
-            )
-        )
-        adapter.updateProducts(testProducts)
+    private fun loadProductsFromDatabase() {
+        lifecycleScope.launch {
+            repository.allProducts.collect { products ->
+                adapter.updateProducts(products)
+            }
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -107,22 +95,9 @@ class MainActivity : AppCompatActivity() {
                 minStockLevel = minStockLevel
             )
 
-            val currentProducts = adapter.getCurrentList() + newProduct
-            adapter.updateProducts(currentProducts)
-            recyclerView.smoothScrollToPosition(currentProducts.size - 1)
+            lifecycleScope.launch {
+                repository.insert(newProduct)
+            }
         }
-    }
-
-    private fun addTestProduct() {
-        val newProduct = Product(
-            name = "Новый товар",
-            category = "Разное",
-            quantity = 10,
-            price = 100.0,
-            shelfLocation = "Полка Н-1"
-        )
-        val currentProducts = adapter.getCurrentList() + newProduct
-        adapter.updateProducts(currentProducts)
-        recyclerView.smoothScrollToPosition(currentProducts.size - 1)
     }
 }

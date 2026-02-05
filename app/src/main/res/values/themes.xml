@@ -11,6 +11,8 @@
         <!-- Фон -->
         <item name="android:windowBackground">@color/background_light</item>
         <item name="android:statusBarColor">@color/primary_blue</item>
+        <item name="android:editTextColor">@color/text_dark</item>
+        <item name="android:textColorHint">@color/text_gray</item>
     </style>
 
     <!-- Тема без ActionBar для активности -->
@@ -24,5 +26,6 @@
         <item name="colorPrimary">@color/primary_blue</item>
         <item name="colorOnPrimary">@android:color/white</item>
         <item name="android:textColorPrimary">@android:color/white</item>
+
     </style>
 </resources>

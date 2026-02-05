@@ -9,7 +9,8 @@ import com.example.storestockmanager.R
 import com.example.storestockmanager.data.Product
 
 class ProductAdapter(
-    private var products: List<Product> = emptyList()
+    private var products: List<Product> = emptyList(),
+    private val onItemLongClick: (Product) -> Unit = {}
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
     class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -39,6 +40,11 @@ class ProductAdapter(
             holder.quantity.setTextColor(holder.itemView.context.getColor(R.color.low_stock))
         } else {
             holder.quantity.setTextColor(holder.itemView.context.getColor(R.color.normal_stock))
+        }
+
+        holder.itemView.setOnLongClickListener {
+            onItemLongClick(product)
+            true
         }
     }
 

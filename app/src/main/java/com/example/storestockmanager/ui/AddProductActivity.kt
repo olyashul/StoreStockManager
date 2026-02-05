@@ -80,23 +80,25 @@ class AddProductActivity : AppCompatActivity() {
     }
 
     private fun saveProduct() {
-        val product = Product(
-            name = editName.text.toString().trim(),
-            category = editCategory.text.toString().trim(),
-            quantity = editQuantity.text.toString().toIntOrNull() ?: 0,
-            price = editPrice.text.toString().toDoubleOrNull() ?: 0.0,
-            shelfLocation = editShelfLocation.text.toString().trim(),
-            minStockLevel = editMinStockLevel.text.toString().toIntOrNull() ?: 5
-        )
+        val name = editName.text.toString().trim()
+        val category = editCategory.text.toString().trim()
+        val quantity = editQuantity.text.toString().trim().toIntOrNull() ?: 0
+        val price = editPrice.text.toString().trim().toDoubleOrNull() ?: 0.0
+        val shelfLocation = editShelfLocation.text.toString().trim()
+        val minStockLevel = editMinStockLevel.text.toString().trim().toIntOrNull() ?: 5
 
-        // Создаем новый Intent для передачи данных
+        if (name.isEmpty() || category.isEmpty() || quantity == 0 || price == 0.0) {
+            Toast.makeText(this, "Заполните обязательные поля", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val resultIntent = Intent().apply {
-            putExtra("product_name", product.name)
-            putExtra("product_category", product.category)
-            putExtra("product_quantity", product.quantity)
-            putExtra("product_price", product.price)
-            putExtra("product_shelf", product.shelfLocation)
-            putExtra("product_min_stock", product.minStockLevel)
+            putExtra("product_name", name)
+            putExtra("product_category", category)
+            putExtra("product_quantity", quantity)
+            putExtra("product_price", price)
+            putExtra("product_shelf", shelfLocation)
+            putExtra("product_min_stock", minStockLevel)
         }
 
         setResult(RESULT_OK, resultIntent)
