@@ -17,4 +17,10 @@ interface ProductDao {
 
     @Query("SELECT * FROM products WHERE id = :id")
     suspend fun getProductById(id: Int): Product?
+
+    @Update
+    suspend fun update(product: Product)
+
+    @Query("SELECT * FROM products WHERE name LIKE '%' || :searchQuery || '%' OR category LIKE '%' || :searchQuery || '%' ORDER BY name ASC")
+    fun searchProducts(searchQuery: String): Flow<List<Product>>
 }

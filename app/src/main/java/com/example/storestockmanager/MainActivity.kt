@@ -2,8 +2,10 @@ package com.example.storestockmanager
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -20,6 +22,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var adapter: ProductAdapter
     private lateinit var fabAdd: FloatingActionButton
     private lateinit var repository: ProductRepository
+    private lateinit var searchView: SearchView
 
     companion object {
         private const val REQUEST_ADD_PRODUCT = 1001
@@ -33,10 +36,12 @@ class MainActivity : AppCompatActivity() {
         val productDao = ProductDatabase.getDatabase(this).productDao()
         repository = ProductRepository(productDao)
 
+        setupSearchView()
         setupRecyclerView()
         setupFloatingButton()
         loadProductsFromDatabase()
     }
+
     private fun openEditProductActivity(product: Product) {
         val intent = Intent(this, com.example.storestockmanager.ui.AddProductActivity::class.java).apply {
             putExtra("edit_mode", true)
@@ -51,13 +56,43 @@ class MainActivity : AppCompatActivity() {
         startActivityForResult(intent, REQUEST_EDIT_PRODUCT)
     }
 
+    private fun setupSearchView() {
+        searchView = findViewById(R.id.searchView)
+
+        // Настраиваем внешний вид SearchView
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                if (newText.isNullOrEmpty()) {
+                    loadProductsFromDatabase()
+                } else {
+                    searchProducts(newText)
+                }
+                return true
+            }
+        })
+
+        val searchEditText = searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
+        searchEditText?.background = null
+    }
+
+    private fun searchProducts(query: String) {
+        lifecycleScope.launch {
+            repository.searchProducts(query).collect { products ->
+                adapter.updateProducts(products)
+            }
+        }
+    }
+
     private fun setupRecyclerView() {
         recyclerView = findViewById(R.id.recyclerViewProducts)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         adapter = ProductAdapter(
             onItemClick = { product ->
-
                 openEditProductActivity(product)
             },
             onItemLongClick = { product ->
@@ -72,6 +107,12 @@ class MainActivity : AppCompatActivity() {
                     }
                     .setNegativeButton("Отмена", null)
                     .show()
+            },
+            onQuantityChanged = { product, newQuantity ->
+                lifecycleScope.launch {
+                    val updatedProduct = product.copy(quantity = newQuantity)
+                    repository.insert(updatedProduct)
+                }
             }
         )
 

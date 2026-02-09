@@ -13,4 +13,12 @@ class ProductRepository(private val productDao: ProductDao) {
     suspend fun delete(product: Product) {
         productDao.delete(product)
     }
+
+    suspend fun update(product: Product) {
+        productDao.update(product)
+    }
+
+    fun searchProducts(query: String): Flow<List<Product>> {
+        return productDao.searchProducts(query)
+    }
 }
