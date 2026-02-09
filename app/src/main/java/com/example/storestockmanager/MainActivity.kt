@@ -23,13 +23,13 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val REQUEST_ADD_PRODUCT = 1001
+        private const val REQUEST_EDIT_PRODUCT = 1002
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Инициализация базы данных
         val productDao = ProductDatabase.getDatabase(this).productDao()
         repository = ProductRepository(productDao)
 
@@ -37,24 +37,43 @@ class MainActivity : AppCompatActivity() {
         setupFloatingButton()
         loadProductsFromDatabase()
     }
+    private fun openEditProductActivity(product: Product) {
+        val intent = Intent(this, com.example.storestockmanager.ui.AddProductActivity::class.java).apply {
+            putExtra("edit_mode", true)
+            putExtra("product_id", product.id)
+            putExtra("product_name", product.name)
+            putExtra("product_category", product.category)
+            putExtra("product_quantity", product.quantity)
+            putExtra("product_price", product.price)
+            putExtra("product_shelf", product.shelfLocation)
+            putExtra("product_min_stock", product.minStockLevel)
+        }
+        startActivityForResult(intent, REQUEST_EDIT_PRODUCT)
+    }
 
     private fun setupRecyclerView() {
         recyclerView = findViewById(R.id.recyclerViewProducts)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        adapter = ProductAdapter(onItemLongClick = { product ->
-            android.app.AlertDialog.Builder(this)
-                .setTitle("Удалить товар")
-                .setMessage("Удалить \"${product.name}\"?")
-                .setPositiveButton("Удалить") { _, _ ->
-                    lifecycleScope.launch {
-                        repository.delete(product)
-                        Toast.makeText(this@MainActivity, "Товар удален", Toast.LENGTH_SHORT).show()
+        adapter = ProductAdapter(
+            onItemClick = { product ->
+
+                openEditProductActivity(product)
+            },
+            onItemLongClick = { product ->
+                android.app.AlertDialog.Builder(this)
+                    .setTitle("Удалить товар")
+                    .setMessage("Удалить \"${product.name}\"?")
+                    .setPositiveButton("Удалить") { _, _ ->
+                        lifecycleScope.launch {
+                            repository.delete(product)
+                            Toast.makeText(this@MainActivity, "Товар удален", Toast.LENGTH_SHORT).show()
+                        }
                     }
-                }
-                .setNegativeButton("Отмена", null)
-                .show()
-        })
+                    .setNegativeButton("Отмена", null)
+                    .show()
+            }
+        )
 
         recyclerView.adapter = adapter
     }
@@ -78,7 +97,7 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if (requestCode == REQUEST_ADD_PRODUCT && resultCode == RESULT_OK && data != null) {
+        if (resultCode == RESULT_OK && data != null) {
             val name = data.getStringExtra("product_name") ?: ""
             val category = data.getStringExtra("product_category") ?: ""
             val quantity = data.getIntExtra("product_quantity", 0)
@@ -86,7 +105,10 @@ class MainActivity : AppCompatActivity() {
             val shelfLocation = data.getStringExtra("product_shelf") ?: ""
             val minStockLevel = data.getIntExtra("product_min_stock", 5)
 
-            val newProduct = Product(
+            val productId = data.getIntExtra("product_id", 0)
+
+            val product = Product(
+                id = productId,
                 name = name,
                 category = category,
                 quantity = quantity,
@@ -96,7 +118,9 @@ class MainActivity : AppCompatActivity() {
             )
 
             lifecycleScope.launch {
-                repository.insert(newProduct)
+                repository.insert(product)
+                val message = if (productId > 0) "Товар обновлен" else "Товар добавлен"
+                Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
             }
         }
     }

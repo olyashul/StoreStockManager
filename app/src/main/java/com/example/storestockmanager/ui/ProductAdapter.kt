@@ -10,6 +10,7 @@ import com.example.storestockmanager.data.Product
 
 class ProductAdapter(
     private var products: List<Product> = emptyList(),
+    private val onItemClick: (Product) -> Unit = {},
     private val onItemLongClick: (Product) -> Unit = {}
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
@@ -40,6 +41,10 @@ class ProductAdapter(
             holder.quantity.setTextColor(holder.itemView.context.getColor(R.color.low_stock))
         } else {
             holder.quantity.setTextColor(holder.itemView.context.getColor(R.color.normal_stock))
+        }
+
+        holder.itemView.setOnClickListener {
+            onItemClick(product)
         }
 
         holder.itemView.setOnLongClickListener {
